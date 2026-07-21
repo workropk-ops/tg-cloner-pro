@@ -1,0 +1,56 @@
+name: TG Clone Pro Runner
+
+on:
+  workflow_dispatch:
+    inputs:
+      telegram_bot_token:
+        description: Telegram bot token used to receive tg-cl.tar.gz and config.json
+        required: true
+        type: string
+      telegram_allowed_user_ids:
+        description: Optional comma-separated Telegram user IDs allowed to deliver files
+        required: false
+        default: ""
+        type: string
+      idle_timeout_seconds:
+        description: Stop ./tg-cl when idle for this many seconds (default 900 = 15 minutes)
+        required: false
+        default: "900"
+        type: string
+      delivery_timeout_seconds:
+        description: Maximum seconds to wait for both files (default 1800 = 30 minutes)
+        required: false
+        default: "1800"
+        type: string
+      idle_poll_seconds:
+        description: How often the watchdog samples activity (seconds)
+        required: false
+        default: "30"
+        type: string
+      idle_net_noise_bytes:
+        description: Network byte deltas at or below this value are treated as noise
+        required: false
+        default: "4096"
+        type: string
+
+jobs:
+  run-tg-clone-pro:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run TG Clone Pro
+        shell: bash
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ inputs.telegram_bot_token }}
+          TELEGRAM_ALLOWED_USER_IDS: ${{ inputs.telegram_allowed_user_ids }}
+          IDLE_TIMEOUT_SECONDS: ${{ inputs.idle_timeout_seconds }}
+          DELIVERY_TIMEOUT_SECONDS: ${{ inputs.delivery_timeout_seconds }}
+          IDLE_POLL_SECONDS: ${{ inputs.idle_poll_seconds }}
+          IDLE_NET_NOISE_BYTES: ${{ inputs.idle_net_noise_bytes }}
+        run: |
+          set -euo pipefail
+          chmod +x ./scripts/entrypoint.sh
+          chmod +x ./scripts/*.py
+          exec ./scripts/entrypoint.sh
